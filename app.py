@@ -1,63 +1,56 @@
 import pandas as pd
 import streamlit as st
 from streamlit_extras.add_vertical_space import add_vertical_space
-from config import settings
 from utilities import get_leagues, get_league_matches, view_pred
  
+# Sets a wider page layout for visualisation
+st.set_page_config(layout="wide") 
+
+# Sets up the available Leagues with prediction for the Sidebar display
+markdown_string = '''Available Leagues with Prediction'''
+leagues = get_leagues()
+for league_name in leagues:
+    markdown_string = markdown_string + f"\n- {league_name}"
+
 # Sidebar contents
 with st.sidebar:
-    st.title('AI Email Writer')
+    st.title('Sports Insights')
+    add_vertical_space(2) 
     st.markdown('''
     ## About
-    This app takes in user's detail and preference and creates a user-tailored sales email using:
-    - [Streamlit](https://streamlit.io/)
-    - [OpenAI](https://platform.openai.com/docs/models) LLM model
- 
+    This app extracts the historic scores for teams in a given match setup, analyses this data and makes prediction:
     ''')
-    add_vertical_space(5)
-    
+    add_vertical_space(2) 
+    st.markdown(markdown_string)
+    add_vertical_space(5)  
  
 #streamlit run app.py
-
 def main():
     '''Main function containing all the logic of the app. The conversation memory is defined,
     and used to trigger the GPT model.'''
-
     st.header("View Predictions")
 
-    leagues = get_leagues()
+    leagues_matches = get_league_matches()
 
     if 'stage' not in st.session_state:
         st.session_state.stage = 0
 
-    def set_stage(stage, league_name=None, match=None):
+    def set_stage(stage):
         st.session_state.stage = stage
-        st.session_state.league = league_name
-        st.session_state.match = match
     
     with st.form("form_1"):
-         st.write("Inside the form")
+        st.write("Inside the form")
 
-         league_option = st.selectbox('Please select a League.', leagues)
+        #Creates a list of options with repesct to the available predictions
+        selected_option = st.selectbox('Please select a League.', leagues_matches)
 
-         # Every form must have a submit button.
-         st.form_submit_button("Submit", on_click=set_stage, args=(1, f"{league_option}",))
+        #Submit the selected option
+        submitted = st.form_submit_button("Submit", on_click=set_stage, args=(1,))
 
-    if st.session_state.stage > 0:
-
-        st.write(st.session_state.league)
-        matches = get_league_matches(st.session_state.league)
-        
-        with st.form("form_2"):
-            st.write("Inside the form")
-
-            match_option = st.selectbox('Please select a League.', matches)
-
-            submitted = st.form_submit_button("Submit", on_click=set_stage, args=(2, f"{st.session_state.league}", f"{match_option}",))
-        
-        if submitted:
-            view_pred(st.session_state.league, match_option)  
+    if submitted:
+        view_pred(selected_option)
             
+    #Reset button
     st.button('Reset', on_click=set_stage, args=(0,))
  
 if __name__ == '__main__':

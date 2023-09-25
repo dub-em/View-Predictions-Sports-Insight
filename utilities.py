@@ -35,8 +35,8 @@ def get_leagues():
     return leagues
 
 
-def get_league_matches(league):
-    '''This function gets a list of all the matches from the selected league'''
+def get_league_matches():
+    '''This function gets a list of all the matches from all the leagues'''
 
     #PostgreSQL database connection parameters
     connection_params = {
@@ -52,7 +52,7 @@ def get_league_matches(league):
     cursor = connection.cursor()
 
     #Create the table in the database
-    get_query = f"SELECT date, hometeam, awayteam FROM match_prediction WHERE league = '{league}'"
+    get_query = f"SELECT date, hometeam, awayteam, league FROM match_prediction"
     cursor.execute(get_query)
 
     rows = cursor.fetchall()
@@ -61,10 +61,10 @@ def get_league_matches(league):
     connection.close()
 
     #Converting the data extracted to a DataFrame for analysis
-    df = pd.DataFrame(rows, columns=['date','hometeam','awayteam'])
+    df = pd.DataFrame(rows, columns=['date','hometeam','awayteam', 'league'])
     matches = []
     for i in range(df.shape[0]):
-        matches.append(f"{list(df['date'])[i]}_{list(df['hometeam'])[i]}_{list(df['awayteam'])[i]}")
+        matches.append(f"{list(df['league'])[i]}_{list(df['date'])[i]}_{list(df['hometeam'])[i]}_{list(df['awayteam'])[i]}")
     matches = tuple(matches)
     matches
     return matches
@@ -130,24 +130,45 @@ def get_refpredictions():
     return df
 
 
-def view_pred(league, match):
+def view_pred(selected_option):
     '''Takes the league and match and extracts the predictions. It also combines
     the teams prediction with the referee's prediction'''
 
-    list_of_condition = match.split('_')
-    prediction = get_predictions(league, list_of_condition[0], list_of_condition[1], list_of_condition[2])
-    ref_predictions = get_refpredictions()
+    list_of_condition = selected_option.split('_')
+    prediction = get_predictions(list_of_condition[0], list_of_condition[1], list_of_condition[2], list_of_condition[3])
+    try:
+        ref_predictions = get_refpredictions()
+    except:
+        ref_predictions = pd.DataFrame([], columns=['date', 'time', 'hometeam', 'awayteam', 'result', 'matchlink', 'league', 'refereelink', 'referee_matchistlink', 'referee_matchhistdetails', 'ref_patterns'])
 
-    corr_refpred = []
-    for j in range(ref_predictions.shape[0]):
-        if (list(prediction['hometeam'])[0] in list(ref_predictions.iloc[j,:])[2]) & (list(prediction['awayteam'])[0] in list(ref_predictions.iloc[j,:])[3]) & (list(prediction['league'])[0] == list(ref_predictions.iloc[j,:])[6]):
-            #print(list(ref_predictions.iloc[j,:])[10])
-            corr_refpred.append(list(ref_predictions.iloc[j,:])[10])
+    corr_refpred = [] #Correspondng Referee Prediction for the same Match set up.
+
+    if ref_predictions.shape[0] > 0:
+        for j in range(ref_predictions.shape[0]):
+            if (list(prediction['hometeam'])[0] in list(ref_predictions.iloc[j,:])[2]) & (list(prediction['awayteam'])[0] in list(ref_predictions.iloc[j,:])[3]) & (list(prediction['league'])[0] == list(ref_predictions.iloc[j,:])[6]):
+                corr_refpred.append(list(ref_predictions.iloc[j,:])[10])
     
-    prediction['ref_predictions'] = corr_refpred
-    col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'ref_predictions', 'innerdetail_analysis']
-    for column in col_of_prediction:
-        st.write(column)
-        predictions = list(prediction[column])[0]
-        for key in list(predictions.keys()):
-            st.write(f"{key}: {predictions[key]}")
+        prediction['ref_predictions'] = corr_refpred
+        col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'ref_predictions', 'innerdetail_analysis']
+        for column in col_of_prediction:
+            with st.expander(f"Predictions assiciated with {column}"):
+                st.write('--'*20)
+                predictions = list(prediction[column])[0]
+                if column == 'innerdetail_analysis':
+                    for key in list(predictions.keys()):
+                        st.write(f"{key}: {predictions[key]}")
+                else:
+                    for key in list(predictions.keys()):
+                        st.write(f"{predictions[key]}")
+    else:
+        col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'innerdetail_analysis']
+        for column in col_of_prediction:
+            with st.expander(f"Predictions assiciated with {column}"):
+                st.write('--'*20)
+                predictions = list(prediction[column])[0]
+                if column == 'innerdetail_analysis':
+                    for key in list(predictions.keys()):
+                        st.write(f"{key}: {predictions[key]}")
+                else:
+                    for key in list(predictions.keys()):
+                        st.write(f"{predictions[key]}")
