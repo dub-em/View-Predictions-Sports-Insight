@@ -148,6 +148,7 @@ def view_pred(selected_option):
             if (list(prediction['hometeam'])[0] in list(ref_predictions.iloc[j,:])[2]) & (list(prediction['awayteam'])[0] in list(ref_predictions.iloc[j,:])[3]) & (list(prediction['league'])[0] == list(ref_predictions.iloc[j,:])[6]):
                 corr_refpred.append(list(ref_predictions.iloc[j,:])[10])
     
+    if len(corr_refpred) > 0:
         prediction['ref_predictions'] = corr_refpred
         col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'ref_predictions', 'innerdetail_analysis']
         for column in col_of_prediction:
