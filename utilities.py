@@ -35,7 +35,7 @@ def get_leagues():
     return leagues
 
 
-def get_league_matches():
+def get_league_matches(league):
     '''This function gets a list of all the matches from all the leagues'''
 
     #PostgreSQL database connection parameters
@@ -52,7 +52,7 @@ def get_league_matches():
     cursor = connection.cursor()
 
     #Create the table in the database
-    get_query = f"SELECT date, hometeam, awayteam, league FROM match_prediction"
+    get_query = f"SELECT date, hometeam, awayteam FROM match_prediction WHERE league = '{league}'"
     cursor.execute(get_query)
 
     rows = cursor.fetchall()
@@ -61,10 +61,10 @@ def get_league_matches():
     connection.close()
 
     #Converting the data extracted to a DataFrame for analysis
-    df = pd.DataFrame(rows, columns=['date','hometeam','awayteam', 'league'])
+    df = pd.DataFrame(rows, columns=['date','hometeam','awayteam'])
     matches = []
     for i in range(df.shape[0]):
-        matches.append(f"{list(df['league'])[i]}_{list(df['date'])[i]}_{list(df['hometeam'])[i]}_{list(df['awayteam'])[i]}")
+        matches.append(f"{list(df['date'])[i]}_{list(df['hometeam'])[i]}_{list(df['awayteam'])[i]}")
     matches = tuple(matches)
     matches
     return matches
@@ -130,12 +130,12 @@ def get_refpredictions():
     return df
 
 
-def view_pred(selected_option):
+def view_pred(league, selected_option):
     '''Takes the league and match and extracts the predictions. It also combines
     the teams prediction with the referee's prediction'''
 
     list_of_condition = selected_option.split('_')
-    prediction = get_predictions(list_of_condition[0], list_of_condition[1], list_of_condition[2], list_of_condition[3])
+    prediction = get_predictions(league, list_of_condition[0], list_of_condition[1], list_of_condition[2])
     try:
         ref_predictions = get_refpredictions()
     except:
@@ -173,3 +173,19 @@ def view_pred(selected_option):
                 else:
                     for key in list(predictions.keys()):
                         st.write(f"{predictions[key]}")
+
+def set_stage(stage):
+        st.session_state.stage = stage
+
+def form(leagues_matches, league):
+    with st.form(str(league)):
+        st.write(f"{league}")
+
+        #Creates a list of options with repesct to the available predictions
+        selected_option = st.selectbox('Please select a Match.', leagues_matches)
+
+        #Submit the selected option
+        submitted = st.form_submit_button("Submit", on_click=set_stage, args=(1,))
+
+    if submitted:
+        view_pred(league, selected_option)
