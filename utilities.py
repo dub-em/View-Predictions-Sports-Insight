@@ -136,92 +136,62 @@ def view_pred(league, selected_option):
 
     list_of_condition = selected_option.split('_')
     prediction = get_predictions(league, list_of_condition[0], list_of_condition[1], list_of_condition[2])
+    print(prediction.shape[0])
     try:
         ref_predictions = get_refpredictions()
     except:
         ref_predictions = pd.DataFrame([], columns=['date', 'time', 'hometeam', 'awayteam', 'result', 'matchlink', 'league', 'refereelink', 'referee_matchistlink', 'referee_matchhistdetails', 'ref_patterns'])
 
+    print(ref_predictions.shape[0])
     corr_refpred = [] #Correspondng Referee Prediction for the same Match set up.
 
     if ref_predictions.shape[0] > 0:
-        for j in range(ref_predictions.shape[0]):
-            if (list(prediction['hometeam'])[0] in list(ref_predictions.iloc[j,:])[2]) & (list(prediction['awayteam'])[0] in list(ref_predictions.iloc[j,:])[3]) & (list(prediction['league'])[0] == list(ref_predictions.iloc[j,:])[6]):
-                corr_refpred.append(list(ref_predictions.iloc[j,:])[10])
-    
-    #print(len(corr_refpred))
+        for i in range(prediction.shape[0]):
+            for j in range(ref_predictions.shape[0]):
+                if (list(prediction['hometeam'])[i] in list(ref_predictions['hometeam'])[j]) & (list(prediction['awayteam'])[i] in list(ref_predictions['awayteam'])[j]) & (list(prediction['league'])[i] == list(ref_predictions['league'])[j]):
+                    corr_refpred.append(list(ref_predictions['ref_patterns'])[j])
+                    
+        
+    print(len(corr_refpred))
+    col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns']
+
     if len(corr_refpred) > 0:
         prediction['ref_predictions'] = corr_refpred
         col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'ref_predictions']
-        
-        scores_dict = {}
+    
+    scores_dict = {}
+    #print(col_of_prediction)
+    for column in col_of_prediction:
+        if 'NoneType' not in str(type(list(prediction[column])[0])):
+            #print(type(list(prediction[column])[0]))
+            for key in (list(prediction[column])[0]).keys():
+                if (list(prediction[column])[0])[key][-5:] not in list(scores_dict.keys()):
+                    scores_dict[str((list(prediction[column])[0])[key][-5:])] = [str((list(prediction[column])[0])[key][:-7])]
+                else:
+                    scores_dict[str((list(prediction[column])[0])[key][-5:])].append(str((list(prediction[column])[0])[key][:-7]))
 
-        for column in col_of_prediction:
-            if 'NoneType' not in str(type(list(prediction[column])[0])):
-                #print(type(list(prediction[column])[0]))
-                for key in (list(prediction[column])[0]).keys():
-                    if (list(prediction[column])[0])[key][-5:] not in list(scores_dict.keys()):
-                        scores_dict[str((list(prediction[column])[0])[key][-5:])] = [str((list(prediction[column])[0])[key][:-7])]
-                    else:
-                        scores_dict[str((list(prediction[column])[0])[key][-5:])].append(str((list(prediction[column])[0])[key][:-7]))
+    data = {'Category': list(scores_dict.keys()),
+            'Value': [len(scores_dict[key]) for key in list(scores_dict.keys())]}
 
-        data = {'Category': list(scores_dict.keys()),
-                'Value': [len(scores_dict[key]) for key in list(scores_dict.keys())]}
+    # Create a DataFrame from the data
+    plot_df = pd.DataFrame(data)
 
-        # Create a DataFrame from the data
-        plot_df = pd.DataFrame(data)
+    with st.expander(f"Frequency of Predictions"):
+        st.write('--'*20)
+        # Display the data as a bar chart
+        st.bar_chart(plot_df.set_index('Category')['Value'])
 
-        with st.expander(f"Frequency of Predictions"):
+    for key in list(scores_dict.keys()):
+        with st.expander(f"Prediction: {key}"):
             st.write('--'*20)
-            # Display the data as a bar chart
-            st.bar_chart(plot_df.set_index('Category')['Value'])
+            for source in scores_dict[key]:
+                st.write(f"{source}")
 
-        for key in list(scores_dict.keys()):
-            with st.expander(f"Prediction: {key}"):
-                st.write('--'*20)
-                for source in scores_dict[key]:
-                    st.write(f"{source}")
-
-        with st.expander(f"Inner Details Analysis"):
-            st.write('--'*20)
-            inner_detail = list(prediction['innerdetail_analysis'])[0]
-            for key in list(inner_detail.keys()):
-                st.write(f"{key}: {inner_detail[key]}")
-        
-    else:
-        col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns']
-        scores_dict = {}
-
-        for column in col_of_prediction:
-            if 'NoneType' not in str(type(list(prediction[column])[0])):
-                #print(type(list(prediction[column])[0]))
-                for key in (list(prediction[column])[0]).keys():
-                    if (list(prediction[column])[0])[key][-5:] not in list(scores_dict.keys()):
-                        scores_dict[str((list(prediction[column])[0])[key][-5:])] = [str((list(prediction[column])[0])[key][:-7])]
-                    else:
-                        scores_dict[str((list(prediction[column])[0])[key][-5:])].append(str((list(prediction[column])[0])[key][:-7]))
-
-        data = {'Category': list(scores_dict.keys()),
-                'Value': [len(scores_dict[key]) for key in list(scores_dict.keys())]}
-
-        # Create a DataFrame from the data
-        plot_df = pd.DataFrame(data)
-
-        with st.expander(f"Frequency of Predictions"):
-            st.write('--'*20)
-            # Display the data as a bar chart
-            st.bar_chart(plot_df.set_index('Category')['Value'])
-
-        for key in list(scores_dict.keys()):
-            with st.expander(f"Prediction: {key}"):
-                st.write('--'*20)
-                for source in scores_dict[key]:
-                    st.write(f"{source}")
-
-        with st.expander(f"Inner Details Analysis"):
-            st.write('--'*20)
-            inner_detail = list(prediction['innerdetail_analysis'])[0]
-            for key in list(inner_detail.keys()):
-                st.write(f"{key}: {inner_detail[key]}")
+    with st.expander(f"Inner Details Analysis"):
+        st.write('--'*20)
+        inner_detail = list(prediction['innerdetail_analysis'])[0]
+        for key in list(inner_detail.keys()):
+            st.write(f"{key}: {inner_detail[key]}")
 
 def set_stage(stage):
         st.session_state.stage = stage
