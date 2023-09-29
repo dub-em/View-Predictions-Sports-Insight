@@ -148,6 +148,7 @@ def view_pred(league, selected_option):
             if (list(prediction['hometeam'])[0] in list(ref_predictions.iloc[j,:])[2]) & (list(prediction['awayteam'])[0] in list(ref_predictions.iloc[j,:])[3]) & (list(prediction['league'])[0] == list(ref_predictions.iloc[j,:])[6]):
                 corr_refpred.append(list(ref_predictions.iloc[j,:])[10])
     
+    #print(len(corr_refpred))
     if len(corr_refpred) > 0:
         prediction['ref_predictions'] = corr_refpred
         col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'ref_predictions']
@@ -155,11 +156,13 @@ def view_pred(league, selected_option):
         scores_dict = {}
 
         for column in col_of_prediction:
-            for key in (list(prediction[column])[0]).keys():
-                if (list(prediction[column])[0])[key][-5:] not in list(scores_dict.keys()):
-                    scores_dict[str((list(prediction[column])[0])[key][-5:])] = [str((list(prediction[column])[0])[key][:-7])]
-                else:
-                    scores_dict[str((list(prediction[column])[0])[key][-5:])].append(str((list(prediction[column])[0])[key][:-7]))
+            if 'NoneType' not in str(type(list(prediction[column])[0])):
+                #print(type(list(prediction[column])[0]))
+                for key in (list(prediction[column])[0]).keys():
+                    if (list(prediction[column])[0])[key][-5:] not in list(scores_dict.keys()):
+                        scores_dict[str((list(prediction[column])[0])[key][-5:])] = [str((list(prediction[column])[0])[key][:-7])]
+                    else:
+                        scores_dict[str((list(prediction[column])[0])[key][-5:])].append(str((list(prediction[column])[0])[key][:-7]))
 
         data = {'Category': list(scores_dict.keys()),
                 'Value': [len(scores_dict[key]) for key in list(scores_dict.keys())]}
@@ -189,11 +192,13 @@ def view_pred(league, selected_option):
         scores_dict = {}
 
         for column in col_of_prediction:
-            for key in (list(prediction[column])[0]).keys():
-                if (list(prediction[column])[0])[key][-5:] not in list(scores_dict.keys()):
-                    scores_dict[str((list(prediction[column])[0])[key][-5:])] = [str((list(prediction[column])[0])[key][:-7])]
-                else:
-                    scores_dict[str((list(prediction[column])[0])[key][-5:])].append(str((list(prediction[column])[0])[key][:-7]))
+            if 'NoneType' not in str(type(list(prediction[column])[0])):
+                #print(type(list(prediction[column])[0]))
+                for key in (list(prediction[column])[0]).keys():
+                    if (list(prediction[column])[0])[key][-5:] not in list(scores_dict.keys()):
+                        scores_dict[str((list(prediction[column])[0])[key][-5:])] = [str((list(prediction[column])[0])[key][:-7])]
+                    else:
+                        scores_dict[str((list(prediction[column])[0])[key][-5:])].append(str((list(prediction[column])[0])[key][:-7]))
 
         data = {'Category': list(scores_dict.keys()),
                 'Value': [len(scores_dict[key]) for key in list(scores_dict.keys())]}
@@ -233,51 +238,3 @@ def form(leagues_matches, league):
 
     if submitted:
         view_pred(league, selected_option)
-
-
-
-
-
-# def view_pred(league, selected_option):
-#     '''Takes the league and match and extracts the predictions. It also combines
-#     the teams prediction with the referee's prediction'''
-
-#     list_of_condition = selected_option.split('_')
-#     prediction = get_predictions(league, list_of_condition[0], list_of_condition[1], list_of_condition[2])
-#     try:
-#         ref_predictions = get_refpredictions()
-#     except:
-#         ref_predictions = pd.DataFrame([], columns=['date', 'time', 'hometeam', 'awayteam', 'result', 'matchlink', 'league', 'refereelink', 'referee_matchistlink', 'referee_matchhistdetails', 'ref_patterns'])
-
-#     corr_refpred = [] #Correspondng Referee Prediction for the same Match set up.
-
-#     if ref_predictions.shape[0] > 0:
-#         for j in range(ref_predictions.shape[0]):
-#             if (list(prediction['hometeam'])[0] in list(ref_predictions.iloc[j,:])[2]) & (list(prediction['awayteam'])[0] in list(ref_predictions.iloc[j,:])[3]) & (list(prediction['league'])[0] == list(ref_predictions.iloc[j,:])[6]):
-#                 corr_refpred.append(list(ref_predictions.iloc[j,:])[10])
-    
-#     if len(corr_refpred) > 0:
-#         prediction['ref_predictions'] = corr_refpred
-#         col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'ref_predictions', 'innerdetail_analysis']
-#         for column in col_of_prediction:
-#             with st.expander(f"Predictions assiciated with {column}"):
-#                 st.write('--'*20)
-#                 predictions = list(prediction[column])[0]
-#                 if column == 'innerdetail_analysis':
-#                     for key in list(predictions.keys()):
-#                         st.write(f"{key}: {predictions[key]}")
-#                 else:
-#                     for key in list(predictions.keys()):
-#                         st.write(f"{predictions[key]}")
-#     else:
-#         col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns', 'innerdetail_analysis']
-#         for column in col_of_prediction:
-#             with st.expander(f"Predictions assiciated with {column}"):
-#                 st.write('--'*20)
-#                 predictions = list(prediction[column])[0]
-#                 if column == 'innerdetail_analysis':
-#                     for key in list(predictions.keys()):
-#                         st.write(f"{key}: {predictions[key]}")
-#                 else:
-#                     for key in list(predictions.keys()):
-#                         st.write(f"{predictions[key]}")
