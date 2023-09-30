@@ -1,7 +1,8 @@
 import pandas as pd
-import psycopg2, json
+import psycopg2
 from config import settings
 import streamlit as st
+from datetime import date, timedelta
 
 
 def get_leagues():
@@ -21,7 +22,7 @@ def get_leagues():
     cursor = connection.cursor()
 
     #Create the table in the database
-    get_query = f"SELECT league FROM match_prediction"
+    get_query = f"SELECT date, league FROM match_prediction"
     cursor.execute(get_query)
 
     rows = cursor.fetchall()
@@ -30,8 +31,14 @@ def get_leagues():
     connection.close()
 
     #Converting the data extracted to a DataFrame for analysis
-    df = pd.DataFrame(rows, columns=['league'])
-    leagues = tuple(set(list(df['league'])))
+    df = pd.DataFrame(rows, columns=['date', 'league'])
+    df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d %H:%M:%S")
+
+    yesterday = date.today() + timedelta(days=-1)
+    today = date.today()
+    tomorrow = date.today() + timedelta(days=1)
+    today_df = df[(df['date'].dt.date == yesterday) | (df['date'].dt.date == today) | (df['date'].dt.date == tomorrow)]
+    leagues = tuple(set(list(today_df['league'])))
     return leagues
 
 
@@ -62,9 +69,16 @@ def get_league_matches(league):
 
     #Converting the data extracted to a DataFrame for analysis
     df = pd.DataFrame(rows, columns=['date','hometeam','awayteam'])
+    df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d %H:%M:%S")
+
+    yesterday = date.today() + timedelta(days=-1)
+    today = date.today()
+    tomorrow = date.today() + timedelta(days=1)
+    today_df = df[(df['date'].dt.date == yesterday) | (df['date'].dt.date == today) | (df['date'].dt.date == tomorrow)]
+    
     matches = []
-    for i in range(df.shape[0]):
-        matches.append(f"{list(df['date'])[i]}_{list(df['hometeam'])[i]}_{list(df['awayteam'])[i]}")
+    for i in range(today_df.shape[0]):
+        matches.append(f"{list(today_df['date'])[i]}_{list(today_df['hometeam'])[i]}_{list(today_df['awayteam'])[i]}")
     matches = tuple(matches)
     matches
     return matches
@@ -127,7 +141,14 @@ def get_refpredictions():
 
     #Converting the data extracted to a DataFrame for analysis
     df = pd.DataFrame(rows, columns=['date', 'time', 'hometeam', 'awayteam', 'result', 'matchlink', 'league', 'refereelink', 'referee_matchistlink', 'referee_matchhistdetails', 'ref_patterns'])
-    return df
+    df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d %H:%M:%S")
+
+    yesterday = date.today() + timedelta(days=-1)
+    today = date.today()
+    tomorrow = date.today() + timedelta(days=1)
+    today_df = df[(df['date'].dt.date == yesterday) | (df['date'].dt.date == today) | (df['date'].dt.date == tomorrow)]
+    
+    return today_df
 
 
 def view_pred(league, selected_option):
@@ -136,13 +157,13 @@ def view_pred(league, selected_option):
 
     list_of_condition = selected_option.split('_')
     prediction = get_predictions(league, list_of_condition[0], list_of_condition[1], list_of_condition[2])
-    print(prediction.shape[0])
+    #print(prediction.shape[0])
     try:
         ref_predictions = get_refpredictions()
     except:
         ref_predictions = pd.DataFrame([], columns=['date', 'time', 'hometeam', 'awayteam', 'result', 'matchlink', 'league', 'refereelink', 'referee_matchistlink', 'referee_matchhistdetails', 'ref_patterns'])
 
-    print(ref_predictions.shape[0])
+    #print(ref_predictions.shape[0])
     corr_refpred = [] #Correspondng Referee Prediction for the same Match set up.
 
     if ref_predictions.shape[0] > 0:
@@ -152,7 +173,7 @@ def view_pred(league, selected_option):
                     corr_refpred.append(list(ref_predictions['ref_patterns'])[j])
                     
         
-    print(len(corr_refpred))
+    #print(len(corr_refpred))
     col_of_prediction = ['home_score_patterns', 'away_score_patterns', 'h2h_score_patterns']
 
     if len(corr_refpred) > 0:
@@ -185,7 +206,16 @@ def view_pred(league, selected_option):
         with st.expander(f"Prediction: {key}"):
             st.write('--'*20)
             for source in scores_dict[key]:
-                st.write(f"{source}")
+                if 'home' in source:
+                    st.write(f'<span style="color: red;">{source}</span>', unsafe_allow_html=True)
+                elif 'away' in source:
+                    st.write(f'<span style="color: orange;">{source}</span>', unsafe_allow_html=True)
+                elif 'head-to-head' in source:
+                    st.write(f'<span style="color: green;">{source}</span>', unsafe_allow_html=True)
+                elif 'ref' in source:
+                    st.write(f'<span style="color: yellow;">{source}</span>', unsafe_allow_html=True)
+                else:
+                    st.write(f'{source}')
 
     with st.expander(f"Inner Details Analysis"):
         st.write('--'*20)

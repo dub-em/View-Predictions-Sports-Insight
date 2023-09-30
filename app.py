@@ -20,7 +20,19 @@ with st.sidebar:
     ## About
     This app extracts the historic scores for teams in a given match setup, analyses this data and makes prediction:
     ''')
-    add_vertical_space(2) 
+    add_vertical_space(2)
+    st.markdown('''
+    Note (Prediction Colours and Sources):
+                
+    Colour - Red : Source - Home Team History 
+                
+    Colour - Orange : Source - Away Team History
+                
+    Colour - Green : Source - Head-to-Head History
+                
+    Colour - Yellow : Source - Referee's History
+    ''')
+    add_vertical_space(1) 
     st.markdown(markdown_string)
     add_vertical_space(5)  
  
