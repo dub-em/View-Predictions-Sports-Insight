@@ -213,7 +213,7 @@ def view_pred(league, selected_option):
                 elif 'head-to-head' in source:
                     st.write(f'<span style="color: green;">{source}</span>', unsafe_allow_html=True)
                 elif 'ref' in source:
-                    st.write(f'<span style="color: yellow;">{source}</span>', unsafe_allow_html=True)
+                    st.write(f'<span style="color: lightblue;">{source}</span>', unsafe_allow_html=True)
                 else:
                     st.write(f'{source}')
 

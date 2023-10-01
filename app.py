@@ -30,7 +30,7 @@ with st.sidebar:
                 
     Colour - Green : Source - Head-to-Head History
                 
-    Colour - Yellow : Source - Referee's History
+    Colour - Lightblue : Source - Referee's History
     ''')
     add_vertical_space(1) 
     st.markdown(markdown_string)
