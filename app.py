@@ -33,6 +33,8 @@ with st.sidebar:
     Colour - Blue : Source - Referee's History
     ''')
     add_vertical_space(1) 
+    st.button('Reset', on_click=set_stage, args=(0,)) #Reset button
+    add_vertical_space(1)
     st.markdown(markdown_string)
     add_vertical_space(5)  
  
@@ -46,9 +48,6 @@ def main(league_list):
     for league in league_list:
         leagues_matches = get_league_matches(league)
         form(leagues_matches, league)
-            
-    #Reset button
-    st.button('Reset', on_click=set_stage, args=(0,))
  
 if __name__ == '__main__':
     main(leagues)
