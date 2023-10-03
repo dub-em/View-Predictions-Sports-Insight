@@ -22,19 +22,7 @@ with st.sidebar:
     ## About
     This app extracts the historic scores for teams in a given match setup, analyses this data and makes prediction:
     ''')
-    add_vertical_space(2)
-    st.markdown('''
-    Note (Prediction Colours and Sources):
-                
-    Colour - Red : Source - Home Team History 
-                
-    Colour - Orange : Source - Away Team History
-                
-    Colour - Green : Source - Head-to-Head History
-                
-    Colour - Blue : Source - Referee's History
-    ''')
-    add_vertical_space(1) 
+    add_vertical_space(2) 
 
     st.button('Reset', on_click=set_stage, args=(0,)) #Reset button
 
@@ -47,7 +35,15 @@ with st.sidebar:
         league_url = str(league_title).replace(' ','_')
         exec(f"st.sidebar.markdown('[{league_title}](#_{league_url})')")
 
-    add_vertical_space(5) 
+    add_vertical_space(3) 
+
+    st.markdown('''Note (Prediction Colours and Sources):''')
+    st.markdown('''Colour - Red : Source - Home Team History''')
+    st.markdown('''Colour - Orange : Source - Away Team History''')
+    st.markdown('''Colour - Green : Source - Head-to-Head History''')
+    st.markdown('''Colour - Blue : Source - Referee's History''')
+
+    add_vertical_space(5)
  
 
 #streamlit run app.py
