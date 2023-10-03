@@ -9,10 +9,12 @@ st.set_page_config(layout="wide")
 # Sets up the available Leagues with prediction for the Sidebar display
 markdown_string = '''Available Leagues with Prediction'''
 leagues = get_leagues()
-for league_name in leagues:
-    markdown_string = markdown_string + f"\n- {league_name}"
 
-# Sidebar contents
+# for league_name in leagues:
+#     markdown_string = markdown_string + f"\n- {league_name}"
+
+
+#Sidebar contents
 with st.sidebar:
     st.title('Sports Insights')
     add_vertical_space(2) 
@@ -33,11 +35,21 @@ with st.sidebar:
     Colour - Blue : Source - Referee's History
     ''')
     add_vertical_space(1) 
+
     st.button('Reset', on_click=set_stage, args=(0,)) #Reset button
+
     add_vertical_space(1)
+
     st.markdown(markdown_string)
-    add_vertical_space(5)  
+
+    #Creates in-page links to link the list of available leagues wiht prediction to their respecitve forms on the body.
+    for league_title in leagues:
+        league_url = str(league_title).replace(' ','_')
+        exec(f"st.sidebar.markdown('[{league_title}](#_{league_url})')")
+
+    add_vertical_space(5) 
  
+
 #streamlit run app.py
 def main(league_list):
     st.header("View Predictions")

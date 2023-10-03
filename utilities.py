@@ -228,6 +228,10 @@ def set_stage(stage):
 
 def form(leagues_matches, league):
     with st.form(str(league)):
+        #Creates a link for each form so that each form can be easily navigated to from the sidebar.
+        league_link = str(league).replace(' ','_')
+        st.markdown(f"<a name='_{league_link}'></a>", unsafe_allow_html=True)
+        
         st.write(f"{league}")
 
         #Creates a list of options with repesct to the available predictions
